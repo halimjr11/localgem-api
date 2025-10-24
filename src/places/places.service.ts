@@ -1,0 +1,47 @@
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Place } from './entities/place.entity';
+
+@Injectable()
+export class PlacesService {
+  constructor(
+    @InjectRepository(Place)
+    private placeRepository: Repository<Place>,
+  ) {}
+
+  findAll(userId: number): Promise<Place[]> {
+    return this.placeRepository.find({
+      where: { user: { id: userId } },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async findOne(id: number, userId: number): Promise<Place> {
+    const place = await this.placeRepository.findOne({
+      where: { id, user: { id: userId } },
+    });
+    return place ? Promise.resolve(place) : Promise.resolve({} as Place);
+  }
+
+  create(data: Partial<Place>, userId: number): Promise<Place> {
+    const newPlace = this.placeRepository.create({
+      ...data,
+      user: { id: userId } as unknown as Place['user'],
+    });
+    return this.placeRepository.save(newPlace);
+  }
+
+  async update(
+    id: number,
+    data: Partial<Place>,
+    userId: number,
+  ): Promise<Place> {
+    await this.placeRepository.update({ id, user: { id: userId } }, data);
+    return this.findOne(id, userId);
+  }
+
+  async remove(id: number, userId: number): Promise<void> {
+    await this.placeRepository.delete({ id, user: { id: userId } });
+  }
+}
