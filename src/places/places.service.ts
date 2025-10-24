@@ -10,11 +10,32 @@ export class PlacesService {
     private placeRepository: Repository<Place>,
   ) {}
 
-  findAll(userId: number): Promise<Place[]> {
-    return this.placeRepository.find({
-      where: { user: { id: userId } },
-      order: { createdAt: 'DESC' },
+  findAll(userId: number, tags?: string): Promise<Place[]> {
+    if (!tags) {
+      return this.placeRepository.find({
+        where: { user: { id: userId } },
+        order: { createdAt: 'DESC' },
+      });
+    }
+
+    const slugs = tags
+      .split(',')
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean);
+
+    let qb = this.placeRepository
+      .createQueryBuilder('place')
+      .where('place.userId = :uid', { uid: userId })
+      .orderBy('place.createdAt', 'DESC');
+
+    slugs.forEach((slug, i) => {
+      qb = qb.andWhere(
+        `JSON_SEARCH(place.tagsSlugs, 'one', :slug${i}) IS NOT NULL`,
+        { [`slug${i}`]: slug },
+      );
     });
+
+    return qb.getMany();
   }
 
   async findOne(id: number, userId: number): Promise<Place> {

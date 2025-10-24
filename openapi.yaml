@@ -1,0 +1,329 @@
+openapi: 3.0.3
+info:
+  title: LocalGem API
+  version: 1.0.0
+  description: |
+    Backend REST API for LocalGem built with NestJS.
+    - Auth with JWT (access + refresh)
+    - Places with denormalized tag slugs and lat/lng
+    - Reviews per place (one per user), with aggregate fields on Place
+servers:
+  - url: http://localhost:3000
+    description: Local development
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    TagsFilter:
+      name: tags
+      in: query
+      required: false
+      description: Comma-separated list of tag slugs. Returns places containing ALL specified slugs.
+      schema:
+        type: string
+  schemas:
+    Tokens:
+      type: object
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+      required: [access_token]
+    AuthRegisterRequest:
+      type: object
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 6 }
+        name: { type: string }
+      required: [email, password, name]
+    AuthLoginRequest:
+      type: object
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+      required: [email, password]
+    AuthRefreshRequest:
+      type: object
+      properties:
+        refresh_token: { type: string }
+      required: [refresh_token]
+    Place:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        location: { type: string }
+        latitude: { type: number, nullable: true }
+        longitude: { type: number, nullable: true }
+        description: { type: string, nullable: true }
+        imageUrl: { type: string, nullable: true }
+        avgRating: { type: number, format: float }
+        reviewsCount: { type: integer }
+        tagsSlugs:
+          type: array
+          items: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+      required: [id, name, location, avgRating, reviewsCount]
+    PlaceCreateRequest:
+      type: object
+      properties:
+        name: { type: string }
+        location: { type: string }
+        latitude: { type: number, nullable: true }
+        longitude: { type: number, nullable: true }
+        description: { type: string, nullable: true }
+        imageUrl: { type: string, nullable: true }
+        tagsSlugs:
+          type: array
+          items: { type: string }
+      required: [name, location]
+    PlaceUpdateRequest:
+      type: object
+      properties:
+        name: { type: string }
+        location: { type: string }
+        latitude: { type: number, nullable: true }
+        longitude: { type: number, nullable: true }
+        description: { type: string, nullable: true }
+        imageUrl: { type: string, nullable: true }
+        tagsSlugs:
+          type: array
+          items: { type: string }
+    Review:
+      type: object
+      properties:
+        id: { type: integer }
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        comment: { type: string, nullable: true }
+        userId: { type: integer }
+        placeId: { type: integer }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+      required: [id, rating, userId, placeId]
+    ReviewCreateRequest:
+      type: object
+      properties:
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        comment: { type: string, nullable: true }
+      required: [rating]
+    ReviewUpdateRequest:
+      type: object
+      properties:
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        comment: { type: string, nullable: true }
+paths:
+  /auth/register:
+    post:
+      summary: Register new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRegisterRequest'
+      responses:
+        '201':
+          description: User created
+        '400':
+          description: Validation error
+  /auth/login:
+    post:
+      summary: Login and get tokens
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthLoginRequest'
+      responses:
+        '200':
+          description: Tokens
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tokens'
+        '401':
+          description: Invalid credentials
+  /auth/refresh:
+    post:
+      summary: Refresh access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRefreshRequest'
+      responses:
+        '200':
+          description: New access token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token: { type: string }
+                required: [access_token]
+        '401':
+          description: Invalid refresh token
+  /places:
+    get:
+      summary: List places for the authenticated user
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TagsFilter'
+      responses:
+        '200':
+          description: List of places
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Place'
+        '401': { description: Unauthorized }
+    post:
+      summary: Create a place
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlaceCreateRequest'
+      responses:
+        '201':
+          description: Created place
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Place'
+        '400': { description: Validation error }
+        '401': { description: Unauthorized }
+  /places/{id}:
+    get:
+      summary: Get a place by id (owned by the user)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: The place
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Place'
+        '404': { description: Not found }
+        '401': { description: Unauthorized }
+    put:
+      summary: Update a place by id (owned by the user)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlaceUpdateRequest'
+      responses:
+        '200':
+          description: Updated place
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Place'
+        '400': { description: Validation error }
+        '404': { description: Not found }
+        '401': { description: Unauthorized }
+  /places/{id}/reviews:
+    get:
+      summary: List reviews for a place
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+        - name: page
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1 }
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 100 }
+      responses:
+        '200':
+          description: Reviews list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Review'
+        '401': { description: Unauthorized }
+    post:
+      summary: Create or replace current user's review for a place
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewCreateRequest'
+      responses:
+        '201':
+          description: Created/updated review
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '400': { description: Validation error }
+        '401': { description: Unauthorized }
+  /places/{id}/reviews/me:
+    put:
+      summary: Update current user's review for a place
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewUpdateRequest'
+      responses:
+        '200':
+          description: Updated review
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '400': { description: Validation error }
+        '401': { description: Unauthorized }

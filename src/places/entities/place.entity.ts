@@ -19,6 +19,12 @@ export class Place {
   @Column()
   location: string;
 
+  @Column({ type: 'double', nullable: true })
+  latitude?: number;
+
+  @Column({ type: 'double', nullable: true })
+  longitude?: number;
+
   @Column({ nullable: true })
   description?: string;
 
@@ -26,10 +32,13 @@ export class Place {
   imageUrl?: string;
 
   @Column({ type: 'float', default: 0 })
-  rating: number;
+  avgRating: number;
 
-  @Column({ nullable: true })
-  tags?: string;
+  @Column({ type: 'int', default: 0 })
+  reviewsCount: number;
+
+  @Column({ type: 'json', nullable: true })
+  tagsSlugs?: string[];
 
   @ManyToOne(() => User, (user) => user.places, {
     eager: false,

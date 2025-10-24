@@ -8,6 +8,7 @@ import {
   Body,
   UseGuards,
   Req,
+  Query,
 } from '@nestjs/common';
 import { PlacesService } from './places.service';
 import { Place } from './entities/place.entity';
@@ -21,9 +22,12 @@ export class PlacesController {
   constructor(private readonly placesService: PlacesService) {}
 
   @Get()
-  findAll(@Req() req: ExpressRequest & { user: AuthUser }): Promise<Place[]> {
+  findAll(
+    @Req() req: ExpressRequest & { user: AuthUser },
+    @Query('tags') tags?: string,
+  ): Promise<Place[]> {
     const userId = req.user.id;
-    return this.placesService.findAll(Number(userId));
+    return this.placesService.findAll(Number(userId), tags);
   }
 
   @Get(':id')
@@ -52,14 +56,5 @@ export class PlacesController {
   ): Promise<Place> {
     const userId = req.user.id;
     return this.placesService.update(Number(id), body, Number(userId));
-  }
-
-  @Delete(':id')
-  remove(
-    @Param('id') id: string,
-    @Req() req: ExpressRequest & { user: AuthUser },
-  ): Promise<void> {
-    const userId = req.user.id;
-    return this.placesService.remove(Number(id), Number(userId));
   }
 }
