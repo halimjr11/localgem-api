@@ -1,4 +1,5 @@
-import { Module } from '@nestjs/common';
+import { Module, ValidationPipe } from '@nestjs/common';
+import { APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PlacesModule } from './places/places.module';
@@ -7,7 +8,9 @@ import { User } from './users/entities/user.entity';
 import { Review } from './places/entities/review.entity';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { DocsModule } from './docs/docs.module';
 import configuration from './config/configuration';
+import { HttpResponseInterceptor } from './common/interceptors/http-response.interceptor';
 
 @Module({
   imports: [
@@ -32,6 +35,7 @@ import configuration from './config/configuration';
     AuthModule,
     UsersModule,
     PlacesModule,
+    DocsModule,
   ],
 })
 export class AppModule {}

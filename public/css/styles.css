@@ -1,0 +1,130 @@
+/* Custom styles for LocalGem API Documentation */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap');
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    line-height: 1.6;
+}
+
+/* Inline code styling */
+code:not(pre code) {
+    background: #f3f4f6;
+    padding: 0.2em 0.4em;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    font-size: 0.875em;
+    color: #e53e3e;
+}
+
+/* Code block styling */
+pre {
+    background: #1e293b;
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin: 1rem 0;
+    overflow-x: auto;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    position: relative;
+}
+
+pre code {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: #e2e8f0;
+    white-space: pre;
+    display: block;
+    counter-reset: line;
+    tab-size: 2;
+}
+
+/* JSON syntax highlighting */
+pre code .token.punctuation {
+    color: #94a3b8;
+}
+
+pre code .token.key {
+    color: #7dd3fc;
+}
+
+pre code .token.string {
+    color: #86efac;
+}
+
+pre code .token.number {
+    color: #60a5fa;
+}
+
+pre code .token.boolean {
+    color: #f472b6;
+}
+
+pre code .token.null {
+    color: #a78bfa;
+}
+
+pre code .token.operator {
+    color: #cbd5e1;
+}
+
+/* Add line numbers to code blocks */
+pre code .line {
+    display: block;
+    min-height: 1.5em;
+    position: relative;
+    padding-left: 2.5em;
+    border-left: 1px solid #334155;
+}
+
+pre code .line:before {
+    counter-increment: line;
+    content: counter(line);
+    position: absolute;
+    left: 0;
+    width: 2em;
+    text-align: right;
+    padding-right: 0.75em;
+    color: #64748b;
+    user-select: none;
+    border-right: 1px solid #334155;
+    margin-right: 0.75em;
+}
+
+/* Syntax highlighting */
+pre code .string { color: #86efac; } /* Green for strings */
+pre code .number { color: #60a5fa; }   /* Blue for numbers */
+pre code .boolean { color: #f472b6; }  /* Pink for booleans */
+pre code .null { color: #a78bfa; }     /* Purple for null */
+pre code .key { color: #60a5fa; }      /* Blue for keys */
+
+/* Method badges */
+.inline-flex {
+    min-width: 80px;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    letter-spacing: 0.025em;
+}
+
+/* Request/Response sections */
+.bg-gray-50 {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+    .text-3xl {
+        font-size: 1.5rem;
+    }
+    
+    .text-2xl {
+        font-size: 1.25rem;
+    }
+    
+    pre {
+        padding: 0.75rem;
+        font-size: 0.75rem;
+    }
+}
